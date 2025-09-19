@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>チュロス注文フォーム</title>
+  <style>
+    body { font-family: sans-serif; background-color: #fff8f0; }
+    .container { max-width: 400px; margin: auto; padding: 10px; }
+    h2 { text-align: center; }
+    label { font-weight: bold; display: block; margin-top: 10px; }
+    select, input { width: 100%; padding: 8px; margin: 5px 0; }
+    button { width: 100%; padding: 10px; background-color: #FF8C00; color: white; border: none; border-radius: 5px; margin-top: 10px; cursor: pointer; }
+    #successMsg { display: none; text-align: center; color: green; margin-top: 10px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>チュロス注文フォーム</h2>
+    
+    <form id="orderForm">
+      <label for="product">商品</label>
+      <select id="product" name="product" required>
+        <option value="">選択してください</option>
+        <option value="プレーン">プレーン</option>
+        <option value="シナモン">シナモン</option>
+        <option value="ココア">ココア</option>
+      </select>
+      
+      <label for="quantity">個数</label>
+      <input type="number" id="quantity" name="quantity" min="1" value="1" required>
+      
+      <button type="submit">注文する</button>
+    </form>
+    
+    <p id="successMsg">注文が送信されました！ありがとうございました。</p>
+  </div>
+
+  <script>
+    document.getElementById('orderForm').addEventListener('submit', function(e){
+      e.preventDefault();
+
+      const product = document.getElementById('product').value;
+      const quantity = parseInt(document.getElementById('quantity').value);
+
+      if(!product || !quantity) {
+        alert('商品と個数を選んでください');
+        return;
+      }
+
+      // Googleフォーム送信用 URL
+      const formUrl = "https://docs.google.com/forms/d/e/1FAIpQLSeCc-VEMdaQZNB-0cn-XwpK4GRg4HiqEn464kFd3OlRpW-cyQ/formResponse";
+
+      const data = new FormData();
+      // Googleフォームの entry ID に置き換えてください
+      data.append('entry.321175695', product);  // 商品
+      data.append('entry.700056289', quantity); // 個数
+
+      fetch(formUrl, { method: 'POST', body: data })
+        .then(() => {
+          document.getElementById('successMsg').style.display = 'block';
+          document.getElementById('orderForm').reset();
+
+          // Discord Webhook通知
+          fetch("https://discord.com/api/webhooks/1418559974451183686/Rn4uaLUFSlk1e1qQgvTar1-lFuZ7bicc060DPBslq65IMjiSDUqqSWHkmFZPKcMcU2lg", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              content: `🆕 注文が入りました！
+商品: ${product} x ${quantity}
+合計金額: ${quantity * 300}円`
+            })
+          });
+        })
+        .catch(() => alert('送信に失敗しました'));
+    });
+  </script>
+</body>
+</html>
